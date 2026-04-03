@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My memorie of you</title>
+ 
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+ 
+    body {
+      background: black;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Georgia', serif;
+      flex-direction: column;
+      padding: 20px;
+    }
+ 
+    #btnRecordar {
+      padding: clamp(10px, 3vw, 15px) clamp(20px, 6vw, 30px);
+      font-size: clamp(14px, 4vw, 18px);
+      background: transparent;
+      color: white;
+      border: 1px solid white;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: background 0.3s, color 0.3s;
+    }
+ 
+    #btnRecordar:hover {
+      background: white;
+      color: black;
+    }
+ 
+    #recuerdo {
+      display: none;
+      text-align: center;
+      width: 100%;
+      max-width: 500px;
+      padding: 0 10px;
+      cursor: pointer;
+    }
+ 
+    img, video {
+      width: 100%;
+      max-width: min(300px, 85vw);
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: clamp(10px, 3vw, 20px);
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+ 
+    #mensaje {
+      font-size: clamp(14px, 4.5vw, 22px);
+      letter-spacing: 2px;
+      margin-top: clamp(10px, 3vw, 15px);
+      min-height: 30px;
+      line-height: 1.5;
+      padding: 0 10px;
+    }
+ 
+    #mensaje::after {
+      content: "|";
+      animation: parpadeo 1s infinite;
+    }
+ 
+    @keyframes parpadeo {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+ 
+    #btnCerrar {
+      padding: clamp(8px, 2.5vw, 12px) clamp(16px, 5vw, 24px);
+      font-size: clamp(13px, 3.5vw, 16px);
+      background: transparent;
+      color: white;
+      border: 1px solid white;
+      cursor: pointer;
+      margin-top: clamp(15px, 4vw, 20px);
+      letter-spacing: 1px;
+      transition: background 0.3s, color 0.3s;
+    }
+ 
+    #btnCerrar:hover {
+      background: white;
+      color: black;
+    }
+  </style>
+</head>
+ 
+<body>
+ 
+  <button id="btnRecordar" onclick="iniciarRecuerdos()">Recordar</button>
+ 
+  <audio id="musica" loop>
+    <source src="fotos/volando.mp3" type="audio/mpeg">
+  </audio>
+ 
+  <div id="recuerdo" onclick="siguienteRecuerdo()">
+    <video id="video" autoplay muted loop style="display:none;" playsinline>
+      <source id="sourceVideo" src="">
+    </video>
+ 
+    <img id="imagen" src="" style="display:none;" alt="recuerdo">
+ 
+    <p id="mensaje"></p>
+ 
+    <button id="btnCerrar" onclick="cerrarRecuerdo(); event.stopPropagation();">Cerrar</button>
+  </div>
+ 
+  <script>
+    let indice = 0;
+    let mostrandoFinal = false;
+    let escribiendo = false;
+ 
+    const recuerdos = [
+      { archivo: "1.mov", mensaje: "..." },
+      { archivo: "2.mov", mensaje: "..." },
+      { archivo: "3.mov", mensaje: "..." },
+      { archivo: "4.mov", mensaje: "..." },
+      { archivo: "5.mov", mensaje: "..." },
+      { archivo: "6.mov", mensaje: "..." },
+      { archivo: "7.mov", mensaje: "..." },
+      { archivo: "8.jpg", mensaje: "..........." }
+    ];
+ 
+    function iniciarRecuerdos() {
+      document.getElementById("btnRecordar").style.display = "none";
+      document.getElementById("recuerdo").style.display = "block";
+ 
+      const musica = document.getElementById("musica");
+      if (musica.paused) musica.play();
+ 
+      mostrarActual();
+    }
+ 
+    function siguienteRecuerdo() {
+      if (escribiendo) return;
+ 
+      if (indice >= recuerdos.length && !mostrandoFinal) {
+        mostrandoFinal = true;
+ 
+        document.getElementById("video").style.display = "none";
+        document.getElementById("imagen").style.display = "none";
+ 
+        escribirTexto("Gracias por todo isa...", "mensaje");
+        return;
+      }
+ 
+      if (mostrandoFinal) {
+        mostrandoFinal = false;
+        indice = 0;
+      }
+ 
+      indice++;
+      mostrarActual();
+    }
+ 
+    function mostrarActual() {
+      const recuerdo = recuerdos[indice];
+ 
+      const video = document.getElementById("video");
+      const source = document.getElementById("sourceVideo");
+      const imagen = document.getElementById("imagen");
+ 
+      document.getElementById("mensaje").innerText = "";
+ 
+      if (recuerdo.archivo.endsWith(".mov")) {
+        video.style.display = "block";
+        imagen.style.display = "none";
+        source.src = "fotos/" + recuerdo.archivo;
+        video.load();
+      } else {
+        imagen.style.display = "block";
+        video.style.display = "none";
+        imagen.src = "fotos/" + recuerdo.archivo;
+      }
+ 
+      document.getElementById("mensaje").innerText = recuerdo.mensaje;
+    }
+ 
+    function escribirTexto(texto, elementoId) {
+      let i = 0;
+      const elemento = document.getElementById(elementoId);
+      elemento.innerText = "";
+      escribiendo = true;
+ 
+      function escribir() {
+        if (i < texto.length) {
+          elemento.innerText += texto.charAt(i);
+ 
+          let delay = 40;
+          if (texto.charAt(i) === " ") delay = 120;
+          if (texto.charAt(i) === ".") delay = 200;
+ 
+          i++;
+          setTimeout(escribir, delay);
+        } else {
+          escribiendo = false;
+        }
+      }
+ 
+      escribir();
+    }
+ 
+    function cerrarRecuerdo() {
+      document.getElementById("recuerdo").style.display = "none";
+      document.getElementById("musica").pause();
+      document.getElementById("btnRecordar").style.display = "block";
+ 
+      indice = 0;
+      mostrandoFinal = false;
+      escribiendo = false;
+    }
+  </script>
+ 
+</body>
+</html>
+ 
